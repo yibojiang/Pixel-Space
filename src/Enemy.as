@@ -145,6 +145,7 @@ package
 				else if((os < 3.0) && (_shotClock >= 3.0))
 					shoot = true;
 
+				
 				//If we rolled over one of those time thresholds,
 				//shoot a bullet out along the angle we're currently facing.
 				if(shoot)

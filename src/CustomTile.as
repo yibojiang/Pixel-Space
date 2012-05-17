@@ -50,7 +50,7 @@ package
 				addAnimation("empty", [0], 50, false);
 				addAnimation("spawner", [1], 50, false);
 				addAnimation("player", [2], 50, false);
-				addAnimation("broken_default", [3], 50, false);
+				//addAnimation("broken_default", [3], 50, false);
 			}
 			play(TileName);
 			

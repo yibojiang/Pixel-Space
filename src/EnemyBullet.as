@@ -2,13 +2,15 @@ package
 {
 	import org.flixel.*;
 
-	public class EnemyBullet extends FlxSprite
+	public class EnemyBullet extends FlxSprite implements ITransportable
 	{
 		[Embed(source="data/bot_bullet.png")] private var ImgBullet:Class;
 		[Embed(source="data/jump.mp3")] private var SndHit:Class;
 		[Embed(source="data/enemy.mp3")] private var SndShoot:Class;
 		
 		public var speed:Number;
+		public var vx:Number;
+		public var vy:Number;
 		
 		public function EnemyBullet()
 		{
@@ -21,13 +23,15 @@ package
 		
 		override public function update():void
 		{
+			vx = velocity.x;
+			vy = velocity.y;
 			if(!alive)
 			{
 				if(finished)
 					exists = false;
 			}
-			else if(touching)
-				kill();
+			//else if(touching)
+			//	kill();
 		}
 		
 		override public function kill():void
@@ -52,6 +56,27 @@ package
 			velocity.y = _point.y;
 			solid = true;
 			play("idle");
+		}
+		
+		/* INTERFACE ITransportable */
+		
+		public function transfer(_blackhole1:BlackHole, _blackHole2:BlackHole, _time:Number):void 
+		{
+			trace("call");
+			this.x = _blackHole2.x + 16;
+			this.y = _blackHole2.y + 16;
+			velocity.x = vx;
+			velocity.y = vy;
+		}
+		
+		public function setTargetPos(_blackHole2:BlackHole, _time:Number):void 
+		{
+			
+		}
+		
+		public function transferFinished():void 
+		{
+			
 		}
 	}
 }

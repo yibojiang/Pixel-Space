@@ -218,27 +218,6 @@ package
 			
 			
 		}
-		
-		//TODO
-		private function generateBrokenTile():void
-		{
-			var save:FlxSave = new FlxSave();
-			if (save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
-			{
-				
-				var brokenTiles:Array = save.data.brokenTile;
-				if (save.data.spawner!=null)
-				{
-					for (var i:int = 0; i < brokenTiles.length; i++ )
-					{
-						//var sp:Spawner = new Spawner(spawners[i].x,spawners[i].y,_bigGibs,_enemies,_enemyBullets,_littleGibs,_player); 
-						//_spawners.add(sp);
-					}
-				}
-				
-			}
-			save.close();
-		}
 
 		private function generateEnemy():void
 		{
@@ -376,32 +355,31 @@ package
 			toolBox.add(c);
 			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
-			c=new CustomTile(TileType.MoveTile, 3, "broken_default");
-			c.x = 16;
-			c.y = 16+toolBox.length*16;
-			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
-			
-			
-			var saveButton:FlxButton = new FlxButton(FlxG.width/3-80,FlxG.height/3+120,"Save",onSave);
+			var saveButton:FlxButton = new FlxButton(FlxG.width / 2-40, FlxG.height / 3, "Save", onSave);
+
 			saveButton.color = 0xff729954;
 			saveButton.label.color = 0xffd8eba2;
 			editorUI.add(saveButton);
 			
-			var resetButton:FlxButton = new FlxButton(FlxG.width/3,FlxG.height/3+120,"Reset",onReset);
+			var resetButton:FlxButton = new FlxButton(FlxG.width / 2-40, FlxG.height / 3 + 30, "Reset", onReset);
+
 			resetButton.color = 0xff729954;
 			resetButton.label.color = 0xffd8eba2;
 			editorUI.add(resetButton);
 			
-			playButton = new FlxButton(FlxG.width / 3 + 80, FlxG.height / 3 + 120, "Play",onPlay);
+			playButton = new FlxButton(FlxG.width / 2 - 40 , FlxG.height / 3 + 60, "Play", onPlay);
+
 			//playButton.onDown = onPlay;
 			playButton.color = 0xff729954;
 			playButton.label.color = 0xffd8eba2;
 			editorUI.add(playButton);
 			
 			
+			var quitButton:FlxButton= new FlxButton(FlxG.width / 2 - 40 , FlxG.height / 3 + 90, "Quit", FlxG.resetGame);
+			quitButton.color = 0xff729954;
+			quitButton.label.color = 0xffd8eba2;
+			editorUI.add(quitButton);
 			
 			add(highlightBox);
 			_hud.add(toolSelection);
@@ -639,7 +617,7 @@ package
 		
 		override public function update():void
 		{
-			super.update();
+			
 			if(FlxG.keys.justPressed("ESCAPE"))
 			{
 				if (!paused)
@@ -659,9 +637,10 @@ package
 			
 			if (paused)
 			{
+				editorUI.update();
 				return;
 			}
-	
+			super.update();
 			
 		
 			toolSelectionUpdate();
@@ -670,7 +649,14 @@ package
 			//save off the current score and update the game state
 			
 			FlxG.collide(_bullets, collisionMap, createBlackhole);
+			FlxG.collide(_enemyBullets, collisionMap, createBlackhole);
+			
+			FlxG.collide(_bullets, nonCollisionMap, destroyBlock);
+			FlxG.collide(_enemyBullets, nonCollisionMap, destroyBlock);
+			
 			FlxG.collide(collisionMap, _objects);
+			FlxG.collide(nonCollisionMap, _objects);
+			
 			FlxG.overlap(_hazards,_player,overlapped);
 			FlxG.overlap(_bullets,_hazards,overlapped);
 			
@@ -678,10 +664,13 @@ package
 			if  (blackhole01 != null && blackhole02 != null && blackhole01.available &&  blackhole02.available )
 			{
 				FlxG.overlap(blackholes, _player, transfer,FlxObject.separate);
-				FlxG.overlap(blackholes, _enemies, transfer,FlxObject.separate);
+				FlxG.overlap(blackholes, _enemies, transfer, FlxObject.separate);
+				FlxG.overlap(blackholes, _bullets, transfer, FlxObject.separate);
+				FlxG.overlap(blackholes, _enemyBullets, transfer, FlxObject.separate);
+				
 			}
-		
 		}
+		
 		
 		protected function transfer(Sprite1:FlxSprite,Sprite2:FlxSprite):void
 		{
@@ -695,8 +684,46 @@ package
 				//_player.transfer(blackhole02.x,blackhole02.y,blackhole01.x,blackhole01.y,1);
 				(Sprite2 as ITransportable).transfer(blackhole02,blackhole01,1);
 			}
+		}
 		
-			
+		protected function destroyBlock(Sprite1:FlxSprite, Sprite2:FlxTilemap):void
+		{
+			if ((Sprite1 is Bullet|| Sprite1 is EnemyBullet) && (Sprite2 is FlxTilemap) )
+			{
+		
+				var tilex:Number =  Sprite1.x / TILE_WIDTH;
+				var tiley:Number =  Sprite1.y/ TILE_HEIGHT; 
+				if (Sprite1.justTouched(FlxObject.DOWN))
+				{
+					tiley = Math.ceil(tiley);
+				}
+				else if (Sprite1.justTouched(FlxObject.UP))
+				{
+					tiley = Math.ceil(tiley)-1;
+				}
+				else if (Sprite1.justTouched(FlxObject.LEFT))
+				{
+					tilex = Math.ceil(tilex)-1;
+				}
+				else if (Sprite1.justTouched(FlxObject.RIGHT))
+				{
+					tilex = Math.ceil(tilex);
+				}
+				
+				
+				Sprite2.setTile( tilex,tiley , 0);
+				//FlxG.log(tilex);
+				//FlxG.log( tiley );
+				Sprite1.kill();
+				
+				
+				//Sprite1.x// TILE_WIDTH * TILE_WIDTH;
+				//Sprite1.y// TILE_HEIGHT * TILE_HEIGHT;
+			}
+			else if (Sprite1 is PortalBullet)
+			{
+				Sprite1.kill();
+			}
 		}
 		
 		protected function createBlackhole(Sprite1:FlxSprite,Sprite2:FlxTilemap):void
@@ -733,7 +760,15 @@ package
 					blackhole02.generate();
 				}
 				
-			}	
+			}
+			else if (Sprite1 is Bullet)
+			{
+				(Sprite1 as Bullet).kill();
+			}
+			else if (Sprite1 is EnemyBullet)
+			{
+				(Sprite1 as EnemyBullet).kill();
+			}
 
 		}
 		

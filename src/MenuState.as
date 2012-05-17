@@ -65,7 +65,7 @@ package
 		
 		override public function create():void
 		{
-			
+			FlxG.mouse.hide();
 			mainMenuCall = new Array();
 			mainMenuCall[0] = gotoPlay;
 			mainMenuCall[1] = gotoEditorMenu;

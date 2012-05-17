@@ -6,7 +6,7 @@ package
 	 * ...
 	 * @author yibojiang
 	 */
-	public class PortalBullet extends FlxSprite 
+	public class PortalBullet extends FlxSprite implements ITransportable
 	{
 		[Embed(source="data/portal_bullet.png")] private var ImgBullet:Class;
 		[Embed(source="data/jump.mp3")] private var SndHit:Class;
@@ -62,6 +62,23 @@ package
 			solid = true;
 			type = Type;
 			play("idle");
+		}
+		
+		/* INTERFACE ITransportable */
+		
+		public function transfer(_blackhole1:BlackHole, _blackHole2:BlackHole, _time:Number):void 
+		{
+			
+		}
+		
+		public function setTargetPos(_blackHole2:BlackHole, _time:Number):void 
+		{
+			
+		}
+		
+		public function transferFinished():void 
+		{
+			
 		}
 		
 	}

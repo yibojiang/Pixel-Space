@@ -10,6 +10,7 @@ package
 	   public static const CollisionTile:int = 2;
 	   public static const NonCollisionTile:int = 3;
 	   public static const MoveTile:int = 4;
+	   public static const BrokenTile:int = 5;
 		
 	}
 
