@@ -171,7 +171,7 @@ package
 			
 			
 			var save:FlxSave = new FlxSave();
-			if(save.bind(MenuState.currentLevel))
+			if(save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
 			{
 				if (save.data.maps == null)
 				{
@@ -218,11 +218,32 @@ package
 			
 			
 		}
+		
+		//TODO
+		private function generateBrokenTile():void
+		{
+			var save:FlxSave = new FlxSave();
+			if (save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
+			{
+				
+				var brokenTiles:Array = save.data.brokenTile;
+				if (save.data.spawner!=null)
+				{
+					for (var i:int = 0; i < brokenTiles.length; i++ )
+					{
+						//var sp:Spawner = new Spawner(spawners[i].x,spawners[i].y,_bigGibs,_enemies,_enemyBullets,_littleGibs,_player); 
+						//_spawners.add(sp);
+					}
+				}
+				
+			}
+			save.close();
+		}
 
 		private function generateEnemy():void
 		{
 			var save:FlxSave = new FlxSave();
-			if (save.bind(MenuState.currentLevel))
+			if (save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
 			{
 				var spawners:Array = save.data.spawner;
 				if (save.data.spawner!=null)
@@ -355,6 +376,13 @@ package
 			toolBox.add(c);
 			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
+			c=new CustomTile(TileType.MoveTile, 3, "broken_default");
+			c.x = 16;
+			c.y = 16+toolBox.length*16;
+			currentTools.push(c);
+			toolBox.add(c);
+			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			
 			
 			
 			var saveButton:FlxButton = new FlxButton(FlxG.width/3-80,FlxG.height/3+120,"Save",onSave);
@@ -457,7 +485,7 @@ package
 		protected function onSave():void
 		{
 			var save:FlxSave = new FlxSave();
-			if(save.bind(MenuState.currentLevel))
+			if(save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
 			{
 				var a:Array=collisionMap.getData();
 				var maps:String;
@@ -507,7 +535,8 @@ package
 				
 
 				save.data.player=moveMap.getTileCoords(2,false);
-				save.data.spawner=moveMap.getTileCoords(1,false);
+				save.data.spawner = moveMap.getTileCoords(1, false);
+				save.data.brokenTile=moveMap.getTileCoords(2, false);
 				save.data.mvmaps = maps;
 				
 				save.close();
