@@ -50,9 +50,11 @@ package
 				addAnimation("empty", [0], 50, false);
 				addAnimation("spawner", [1], 50, false);
 				addAnimation("player", [2], 50, false);
-				//addAnimation("broken_default", [3], 50, false);
+				addAnimation("star", [3], 50, false);
+				addAnimation("diamond", [4], 50, false);
+				addAnimation("enemytower", [5], 50, false);
 			}
-			play(TileName);
+			frame = Index;
 			
 			
 		}

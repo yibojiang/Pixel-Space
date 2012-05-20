@@ -4,7 +4,7 @@ package
 	import com.greensock.easing.Quad;
 	import org.flixel.*;
 	import org.flixel.system.FlxTile;
-	
+	import flash.net.*;
 	 
 	public class EditorState extends FlxState 
 	{
@@ -23,6 +23,11 @@ package
 		
 		[Embed(source = 'data/selection.png')]private var ImgSelection:Class;
 		
+		[Embed(source = "data/Pickup_Coin.mp3")] protected var SndCoin:Class;
+		
+		
+		
+		
 		protected var _blocks:FlxGroup;
 		protected var _bullets:FlxGroup;
 		protected var _player:Player;
@@ -31,6 +36,7 @@ package
 		protected var _enemyBullets:FlxGroup;
 		protected var _littleGibs:FlxEmitter;
 		protected var _bigGibs:FlxEmitter;
+		protected var _items:FlxGroup;
 		
 		//meta groups, to help speed up collisions
 		protected var _objects:FlxGroup;
@@ -55,6 +61,7 @@ package
 		private var toolIndex:int;
 		protected var toolSelection:FlxSprite;
 		protected var toolBox:FlxGroup;
+		protected var tools:FlxGroup;
 		
 		protected var blackholes:FlxGroup;
 		
@@ -69,6 +76,9 @@ package
 		protected var editorUI:FlxGroup;
 		
 		protected var playButton:FlxButton;
+		
+		//editor mode or playmode
+		protected var isPlaying:Boolean = false;
 		
 		override public function create():void
 		{
@@ -104,7 +114,7 @@ package
 			_enemyBullets = new FlxGroup();
 			_bullets = new FlxGroup();
 			_hud = new FlxGroup();
-			
+			_items = new FlxGroup();
 			
 			
 			blackholes = new FlxGroup();
@@ -115,7 +125,7 @@ package
 			nonCollisionMap = new FlxTilemap();
 			backgroundMap = new FlxTilemap();
 			moveMap=new FlxTilemap()
-			backgroundMap.scrollFactor = new FlxPoint(0.1, 0.1);
+			//backgroundMap.scrollFactor = new FlxPoint(0.1, 0.1);
 			
 			
 			//_blocks.add(backgroundMap);
@@ -134,17 +144,15 @@ package
 			add(_bigGibs);
 			add(_player);
 			add(_enemies);
-			
-			
-			
-			FlxG.camera.setBounds( 0, 0, mapWidth , mapHeight, true);
-
-			FlxG.camera.follow(_player, FlxCamera.STYLE_PLATFORMER);
-			
+			add(_items);
 			add(_enemyBullets);
 			add(_bullets);
+
 			
-			
+			FlxG.camera.setBounds( 0, 0, mapWidth, mapHeight, true);
+			//FlxG.camera.follow(_player, FlxCamera.STYLE_PLATFORMER);
+			FlxG.camera.follow(_player, FlxCamera.STYLE_LOCKON);
+
 			add(_hud);
 			
 			_hazards = new FlxGroup();
@@ -159,32 +167,41 @@ package
 			_objects.add(_littleGibs);
 			_objects.add(_bigGibs);
 			
+			
 			_hud.setAll("scrollFactor",new FlxPoint(0,0));
 			_hud.setAll("cameras", [FlxG.camera]);
 			
 			FlxG.flash(0xff131c1b);
 			_fading = false;
 			FlxG.watch(_player,"x");
-			FlxG.watch(_player, "y");
+			FlxG.watch(_player, "y")
+			FlxG.watch(_player, "material");
+			FlxG.watch(_player,"key");
 			
+			var levelString:String = getLevelString();
 			
-			
+			var levelArray:Array = levelString.split( '*');
 			
 			var save:FlxSave = new FlxSave();
 			if(save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
 			{
+				
 				if (save.data.maps == null)
 				{
-					collisionMap.loadMap(initMaps(), ImgCustomTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
+					//collisionMap.loadMap(initMaps(), ImgCustomTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
+					collisionMap.loadMap(levelArray[0], ImgCustomTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
 				}
 				else
 				{
 					collisionMap.loadMap(save.data.maps, ImgCustomTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
 				}
 				
+				
+				
 				if (save.data.ncmaps == null)
 				{
-					nonCollisionMap.loadMap(initMaps(), ImgNCTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
+					//nonCollisionMap.loadMap(initMaps(), ImgNCTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
+					nonCollisionMap.loadMap(levelArray[1], ImgNCTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
 				}
 				else
 				{
@@ -193,7 +210,8 @@ package
 				
 				if (save.data.mvmaps == null)
 				{
-					moveMap.loadMap(initMaps(), ImgMVTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
+					//moveMap.loadMap(initMaps(), ImgMVTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
+					moveMap.loadMap(levelArray[2], ImgMVTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
 				}
 				else
 				{
@@ -204,29 +222,47 @@ package
 				if (save.data.player != null)
 				{
 					_player.x = save.data.player[0].x;
-					_player.y = save.data.player[0].y;
-					
+					_player.y = save.data.player[0].y;	
 				}
 				else
 				{
 					_player.x = 100;
 					_player.y = 100;
 				}
-				
 				save.close();
 			}
 			
 			
 		}
-
+		
+		private function generateStar():void
+		{
+			var save:FlxSave = new FlxSave();
+			if (save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
+			{
+				var stars:Array = save.data.star;
+				if (save.data.star!=null)
+				{
+					for (var i:int = 0; i < stars.length; i++ )
+					{
+						var star:Item = new Item(stars[i].x, stars[i].y, Item.Star);
+						_items.add(star);
+					}
+				}
+			
+			}
+			save.close();
+		}
+		
 		private function generateEnemy():void
 		{
 			var save:FlxSave = new FlxSave();
 			if (save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
 			{
-				var spawners:Array = save.data.spawner;
+				
 				if (save.data.spawner!=null)
 				{
+					var spawners:Array = save.data.spawner;
 					for (var i:int = 0; i < spawners.length; i++ )
 					{
 						var sp:Spawner = new Spawner(spawners[i].x,spawners[i].y,_bigGibs,_enemies,_enemyBullets,_littleGibs,_player); 
@@ -239,6 +275,17 @@ package
 						//FlxG.addCamera(camera);
 					}
 				}
+				
+				
+				if (save.data.enemytower!=null)
+				{
+					var enemytowers:Array = save.data.enemytower;
+					for ( i = 0; i < enemytowers.length; i++ )
+					{
+						var tower:EnemyTower = new EnemyTower(enemytowers[i].x, enemytowers[i].y,_enemies, _enemyBullets,_littleGibs, _player); 
+						_enemies.add(tower);
+					}
+				}
 			
 			}
 			save.close();
@@ -246,6 +293,7 @@ package
 		
 		private function addTool():void
 		{
+			tools = new FlxGroup();
 			toolBox = new FlxGroup();
 			toolIndex = 0;
 			toolSelection = new FlxSprite();
@@ -263,98 +311,90 @@ package
 			
 			
 			_hud.add(toolBox);
-			
-			var c:CustomTile = new CustomTile(TileType.CollisionTile, 0, "empty");
+			toolBox.add(tools);
+			var c:CustomTile=new CustomTile(TileType.CollisionTile,1, "grass");
 			c.x = 16;
 			c.y = 16;
 			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
-			
-			c=new CustomTile(TileType.CollisionTile,1, "grass");
-			c.x = 16;
-			c.y = 16+toolBox.length*16;
-			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
 			c=new CustomTile(TileType.CollisionTile,2, "brick");
 			c.x = 16;
-			c.y = 16+toolBox.length*16;
+			c.y = 16+tools.length*16;
 			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
 			c=new CustomTile(TileType.CollisionTile, 3, "default");
 			c.x = 16;
-			c.y = 16+toolBox.length*16;
+			c.y = 16+tools.length*16;
 			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
 			c=new CustomTile(TileType.CollisionTile, 4, "dirt");
 			c.x = 16;
-			c.y = 16+toolBox.length*16;
+			c.y = 16+tools.length*16;
 			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
-			
-			c=new CustomTile(TileType.NonCollisionTile, 0, "empty");
-			c.x = 16;
-			c.y = 16+toolBox.length*16;
-			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
 			c=new CustomTile(TileType.NonCollisionTile, 1, "light_blue");
 			c.x = 16;
-			c.y = 16+toolBox.length*16;
+			c.y = 16+tools.length*16;
 			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
 			c=new CustomTile(TileType.NonCollisionTile, 2, "dark_blue");
 			c.x = 16;
-			c.y = 16+toolBox.length*16;
+			c.y = 16+tools.length*16;
 			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
 			c=new CustomTile(TileType.NonCollisionTile, 3, "green");
 			c.x = 16;
-			c.y = 16+toolBox.length*16;
+			c.y = 16+tools.length*16;
 			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
 			c=new CustomTile(TileType.NonCollisionTile, 4, "black");
 			c.x = 16;
-			c.y = 16+toolBox.length*16;
+			c.y = 16+tools.length*16;
 			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
-			
-			c=new CustomTile(TileType.MoveTile, 0, "empty");
-			c.x = 16;
-			c.y = 16+toolBox.length*16;
-			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
 			c=new CustomTile(TileType.MoveTile, 1, "spawner");
 			c.x = 16;
-			c.y = 16+toolBox.length*16;
+			c.y = 16+tools.length*16;
 			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
 			c=new CustomTile(TileType.MoveTile, 2, "player");
 			c.x = 16;
-			c.y = 16+toolBox.length*16;
+			c.y = 16+tools.length*16;
 			currentTools.push(c);
-			toolBox.add(c);
-			_hud.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
+			c=new CustomTile(TileType.MoveTile, 3, "star");
+			c.x = 16;
+			c.y = 16+tools.length*16;
+			currentTools.push(c);
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			
+			c=new CustomTile(TileType.MoveTile, 5, "enemytower");
+			c.x = 16;
+			c.y = 16+tools.length*16;
+			currentTools.push(c);
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
 			var saveButton:FlxButton = new FlxButton(FlxG.width / 2-40, FlxG.height / 3, "Save", onSave);
 
@@ -362,19 +402,16 @@ package
 			saveButton.label.color = 0xffd8eba2;
 			editorUI.add(saveButton);
 			
-			var resetButton:FlxButton = new FlxButton(FlxG.width / 2-40, FlxG.height / 3 + 30, "Reset", onReset);
-
+			var resetButton:FlxButton = new FlxButton(FlxG.width / 2 - 40, FlxG.height / 3 + 30, "Reset", onReset);
+			
 			resetButton.color = 0xff729954;
 			resetButton.label.color = 0xffd8eba2;
 			editorUI.add(resetButton);
 			
 			playButton = new FlxButton(FlxG.width / 2 - 40 , FlxG.height / 3 + 60, "Play", onPlay);
-
-			//playButton.onDown = onPlay;
 			playButton.color = 0xff729954;
 			playButton.label.color = 0xffd8eba2;
 			editorUI.add(playButton);
-			
 			
 			var quitButton:FlxButton= new FlxButton(FlxG.width / 2 - 40 , FlxG.height / 3 + 90, "Quit", FlxG.resetGame);
 			quitButton.color = 0xff729954;
@@ -382,7 +419,9 @@ package
 			editorUI.add(quitButton);
 			
 			add(highlightBox);
-			_hud.add(toolSelection);
+			
+			toolBox.add(toolSelection);
+			_hud.add(toolBox);
 			_hud.add(editorUI);
 			
 			editorUI.exists = false;
@@ -395,6 +434,7 @@ package
 			moveMap.visible = false;
 			onSave();
 			generateEnemy();
+			generateStar();
 			paused = false;
 			_fading = false;
 
@@ -404,17 +444,56 @@ package
 		{
 			if (!_fading)
 			{
+				if (isPlaying)
+				{
+					FlxG.resetState();
+				}
 				FlxG.mouse.hide();
 				playButton.exists = false;
 				editorUI.exists = false;
 				_fading = true;
+				isPlaying = true;
 				//trace("call");
 				FlxG.flash(0xff000000,0.2,onFade);
 			}
 		}
 		
+		protected function getLevelString():String
+		{
+			if (MenuState.currentLevelIndex == 0)
+			{
+				return new Levels.Level0();
+			}
+			else if (MenuState.currentLevelIndex == 1)
+			{
+				return new Levels.Level1();
+			}
+			
+			return "";
+		}
+		
 		protected function onReset():void
 		{
+			var levelString:String = getLevelString();
+			
+			var levelArray:Array = levelString.split( '*');
+			
+			collisionMap.kill();
+			nonCollisionMap.kill();
+			moveMap.kill();
+			collisionMap = new FlxTilemap();
+			nonCollisionMap = new FlxTilemap();
+			moveMap = new FlxTilemap();
+			
+			_blocks.add(nonCollisionMap);
+			_blocks.add(collisionMap);
+			_blocks.add(moveMap);
+			
+			collisionMap.loadMap(levelArray[0], ImgCustomTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
+			nonCollisionMap.loadMap(levelArray[1], ImgNCTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
+			moveMap.loadMap(levelArray[2], ImgMVTile, TILE_WIDTH, TILE_HEIGHT, FlxTilemap.OFF);
+			
+			/*
 			for (var i:int = 0; i <  mapWidth/TILE_WIDTH ; i++)
 			{
 				for (var j:int = 0; j <  mapWidth/TILE_HEIGHT ; j++)
@@ -432,6 +511,8 @@ package
 					}	
 				}
 			}
+			*/
+			
 		}
 		
 		protected function initMaps():String
@@ -451,8 +532,6 @@ package
 					{
 						maps = maps +  "0,";
 					}
-		
-					
 				}
 				maps += "\n";
 			}
@@ -462,7 +541,10 @@ package
 		
 		protected function onSave():void
 		{
+			
+			
 			var save:FlxSave = new FlxSave();
+			
 			if(save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
 			{
 				var a:Array=collisionMap.getData();
@@ -511,15 +593,29 @@ package
 					maps += "\n";
 				}
 				
-
 				save.data.player=moveMap.getTileCoords(2,false);
 				save.data.spawner = moveMap.getTileCoords(1, false);
-				save.data.brokenTile=moveMap.getTileCoords(2, false);
+				save.data.star = moveMap.getTileCoords(3, false);
+				save.data.enemytower=moveMap.getTileCoords(5, false);
 				save.data.mvmaps = maps;
 				
+				if (!isPlaying)
+				{
+					var saveString:String = "";
+					saveString += save.data.maps;
+					saveString += "*";
+					saveString += save.data.ncmaps;
+					saveString += "*";
+					saveString += save.data.mvmaps;
+					
+					var MyFile:FileReference = new FileReference();
+					MyFile.save(saveString, "level" + MenuState.currentLevelIndex + ".txt");
+				}
+
 				save.close();
 			}
 		}
+		
 		
 		override public function destroy():void
 		{
@@ -534,13 +630,12 @@ package
 			_littleGibs = null;
 			_bigGibs = null;
 			_hud = null;
-			
+			_items = null;
 			
 			//meta groups, to help speed up collisions
 			_objects = null;
 			_hazards = null;
-			
-			
+
 		}
 		
 		
@@ -572,8 +667,13 @@ package
 				toolIndex = 4;
 			}
 			
+			if(FlxG.keys.justPressed("T"))
+			{
+				toolBox.visible = !toolBox.visible;
+			}
+			
 			toolIndex -= FlxG.mouse.wheel/3;
-			toolIndex = FlxU.bound(toolIndex, 0, toolBox.length - 1);
+			toolIndex = FlxU.bound(toolIndex, 0, tools.length - 1);
 			toolSelection.y = toolIndex * 16 + 16;
 			
 			
@@ -584,26 +684,31 @@ package
 				highlightBox.play("available");
 				
 				if (FlxG.mouse.pressed())
-				{
-					// FlxTilemaps can be manually edited at runtime as well.
-					// Setting a tile to 0 removes it, and setting it to anything else will place a tile.
-					// If auto map is on, the map will automatically update all surrounding tiles.
-					
-					if ( currentTools[toolIndex].type == TileType.CollisionTile)
+				{	
+					if (FlxG.keys.SHIFT)
 					{
-						collisionMap.setTile(FlxG.mouse.x / TILE_WIDTH, FlxG.mouse.y / TILE_HEIGHT, FlxG.keys.SHIFT?0: currentTools[toolIndex].index );
+						collisionMap.setTile(FlxG.mouse.x / TILE_WIDTH, FlxG.mouse.y / TILE_HEIGHT, 0);
+						nonCollisionMap.setTile(FlxG.mouse.x / TILE_WIDTH, FlxG.mouse.y / TILE_HEIGHT, 0);
+						moveMap.setTile(FlxG.mouse.x / TILE_WIDTH, FlxG.mouse.y / TILE_HEIGHT, 0);
 					}
-					else if ( currentTools[toolIndex].type == TileType.BackgroundTile)
+					else 
 					{
-						//backgroundMap.setTile(FlxG.mouse.x / TILE_WIDTH, FlxG.mouse.y / TILE_HEIGHT, FlxG.keys.SHIFT?0: currentTools[toolIndex].index );
-					}
-					else if ( currentTools[toolIndex].type == TileType.NonCollisionTile)
-					{
-						nonCollisionMap.setTile(FlxG.mouse.x / TILE_WIDTH, FlxG.mouse.y / TILE_HEIGHT, FlxG.keys.SHIFT?0: currentTools[toolIndex].index );
-					}
-					else if ( currentTools[toolIndex].type == TileType.MoveTile)
-					{
-						moveMap.setTile(FlxG.mouse.x / TILE_WIDTH, FlxG.mouse.y / TILE_HEIGHT, FlxG.keys.SHIFT?0: currentTools[toolIndex].index );
+						if ( currentTools[toolIndex].type == TileType.CollisionTile)
+						{
+							collisionMap.setTile(FlxG.mouse.x / TILE_WIDTH, FlxG.mouse.y / TILE_HEIGHT, FlxG.keys.SHIFT?0: currentTools[toolIndex].index );
+						}
+						else if ( currentTools[toolIndex].type == TileType.BackgroundTile)
+						{
+							//backgroundMap.setTile(FlxG.mouse.x / TILE_WIDTH, FlxG.mouse.y / TILE_HEIGHT, FlxG.keys.SHIFT?0: currentTools[toolIndex].index );
+						}
+						else if ( currentTools[toolIndex].type == TileType.NonCollisionTile)
+						{
+							nonCollisionMap.setTile(FlxG.mouse.x / TILE_WIDTH, FlxG.mouse.y / TILE_HEIGHT, FlxG.keys.SHIFT?0: currentTools[toolIndex].index );
+						}
+						else if ( currentTools[toolIndex].type == TileType.MoveTile)
+						{
+							moveMap.setTile(FlxG.mouse.x / TILE_WIDTH, FlxG.mouse.y / TILE_HEIGHT, FlxG.keys.SHIFT?0: currentTools[toolIndex].index );
+						}
 					}
 				}
 			}
@@ -617,7 +722,6 @@ package
 		
 		override public function update():void
 		{
-			
 			if(FlxG.keys.justPressed("ESCAPE"))
 			{
 				if (!paused)
@@ -645,9 +749,6 @@ package
 		
 			toolSelectionUpdate();
 			
-			
-			//save off the current score and update the game state
-			
 			FlxG.collide(_bullets, collisionMap, createBlackhole);
 			FlxG.collide(_enemyBullets, collisionMap, createBlackhole);
 			
@@ -658,7 +759,9 @@ package
 			FlxG.collide(nonCollisionMap, _objects);
 			
 			FlxG.overlap(_hazards,_player,overlapped);
-			FlxG.overlap(_bullets,_hazards,overlapped);
+			FlxG.overlap(_bullets, _hazards, overlapped);
+			
+			FlxG.overlap(_player, _items, getItem);
 			
 			
 			if  (blackhole01 != null && blackhole02 != null && blackhole01.available &&  blackhole02.available )
@@ -671,17 +774,31 @@ package
 			}
 		}
 		
+		protected function getItem(Sprite1:Player, Sprite2:Item):void
+		{
+			if (Sprite2.itemType == Item.Star)
+			{
+				Sprite1.key++;
+				FlxG.play(SndCoin);
+				Sprite2.kill();
+			}
+			else if (Sprite2.itemType == Item.Material)
+			{
+				Sprite1.material++;
+				FlxG.play(SndCoin);
+				Sprite2.kill();
+				
+			}
+		}
 		
 		protected function transfer(Sprite1:FlxSprite,Sprite2:FlxSprite):void
 		{
 			if (Sprite1 == blackhole01 )
 			{
-				//_player.transfer(blackhole01.x,blackhole01.y,blackhole02.x,blackhole02.y,1);
 				(Sprite2 as ITransportable).transfer(blackhole01,blackhole02,1);
 			}
 			else if (Sprite1 == blackhole02 )
 			{
-				//_player.transfer(blackhole02.x,blackhole02.y,blackhole01.x,blackhole01.y,1);
 				(Sprite2 as ITransportable).transfer(blackhole02,blackhole01,1);
 			}
 		}
@@ -692,7 +809,7 @@ package
 			{
 		
 				var tilex:Number =  Sprite1.x / TILE_WIDTH;
-				var tiley:Number =  Sprite1.y/ TILE_HEIGHT; 
+				var tiley:Number =  Sprite1.y / TILE_HEIGHT; 
 				if (Sprite1.justTouched(FlxObject.DOWN))
 				{
 					tiley = Math.ceil(tiley);
@@ -709,16 +826,68 @@ package
 				{
 					tilex = Math.ceil(tilex);
 				}
-				
-				
-				Sprite2.setTile( tilex,tiley , 0);
-				//FlxG.log(tilex);
-				//FlxG.log( tiley );
+				var material:Item;
+				if (Sprite2.getTile(tilex, tiley) != 0)
+				{
+					Sprite2.setTile( tilex, tiley , 0);
+					material = new Item(tilex*TILE_WIDTH, tiley*TILE_HEIGHT, Item.Material);
+					_items.add(material);	
+				}
+				else 
+				{
+					if (Sprite2.getTile(tilex - 1, tiley - 1) != 0)
+					{
+						Sprite2.setTile( tilex-1, tiley-1 , 0);
+						material = new Item(tilex*TILE_WIDTH, tiley*TILE_HEIGHT, Item.Material);
+						_items.add(material);
+					}
+					else if (Sprite2.getTile(tilex - 1, tiley ) != 0)
+					{
+						Sprite2.setTile( tilex-1, tiley , 0);
+						material = new Item(tilex*TILE_WIDTH, tiley*TILE_HEIGHT, Item.Material);
+						_items.add(material);
+					}
+					else if (Sprite2.getTile(tilex - 1, tiley+1 ) != 0)
+					{
+						Sprite2.setTile( tilex-1, tiley+1 , 0);
+						material = new Item(tilex*TILE_WIDTH, tiley*TILE_HEIGHT, Item.Material);
+						_items.add(material);
+					}
+					else if (Sprite2.getTile(tilex , tiley-1 ) != 0)
+					{
+						Sprite2.setTile( tilex, tiley-1 , 0);
+						material = new Item(tilex*TILE_WIDTH, tiley*TILE_HEIGHT, Item.Material);
+						_items.add(material);
+					}
+					else if (Sprite2.getTile(tilex , tiley+1 ) != 0)
+					{
+						Sprite2.setTile( tilex, tiley+1 , 0);
+						material = new Item(tilex*TILE_WIDTH, tiley*TILE_HEIGHT, Item.Material);
+						_items.add(material);
+					}
+					else if (Sprite2.getTile(tilex+1 , tiley-1 ) != 0)
+					{
+						Sprite2.setTile( tilex+1, tiley-1 , 0);
+						material = new Item(tilex*TILE_WIDTH, tiley*TILE_HEIGHT, Item.Material);
+						_items.add(material);
+					}
+					else if (Sprite2.getTile(tilex+1 , tiley ) != 0)
+					{
+						Sprite2.setTile( tilex+1, tiley , 0);
+						material = new Item(tilex*TILE_WIDTH, tiley*TILE_HEIGHT, Item.Material);
+						_items.add(material);
+					}
+					else if (Sprite2.getTile(tilex+1 , tiley+1 ) != 0)
+					{
+						Sprite2.setTile( tilex+1, tiley+1 , 0);
+						material = new Item(tilex*TILE_WIDTH, tiley*TILE_HEIGHT, Item.Material);
+						_items.add(material);
+					}
+			
+				}
+
 				Sprite1.kill();
 				
-				
-				//Sprite1.x// TILE_WIDTH * TILE_WIDTH;
-				//Sprite1.y// TILE_HEIGHT * TILE_HEIGHT;
 			}
 			else if (Sprite1 is PortalBullet)
 			{
@@ -726,17 +895,37 @@ package
 			}
 		}
 		
+		
 		protected function createBlackhole(Sprite1:FlxSprite,Sprite2:FlxTilemap):void
 		{
 			//trace("black hole!" );
 			if ((Sprite1 is PortalBullet) && (Sprite2 is FlxTilemap) )
 			{
 				var pBullet:PortalBullet = Sprite1 as PortalBullet;
-				
-				
+				/*
+				var tilex:Number =  Sprite1.x/ TILE_WIDTH;
+				var tiley:Number =  Sprite1.y/ TILE_HEIGHT; 
+				if (Sprite1.justTouched(FlxObject.DOWN))
+				{
+					tiley = Math.ceil(tiley)-2;
+				}
+				else if (Sprite1.justTouched(FlxObject.UP))
+				{
+					tiley = Math.ceil(tiley);
+				}
+				else if (Sprite1.justTouched(FlxObject.LEFT))
+				{
+					tilex = Math.ceil(tilex);
+				}
+				else if (Sprite1.justTouched(FlxObject.RIGHT))
+				{
+					tilex = Math.ceil(tilex)-2;
+				}
+				*/
 				if (pBullet.type == 1 && blackhole01 ==null)
 				{
 					blackhole01 = new BlackHole(Sprite1.x,Sprite1.y );
+					//blackhole01 = new BlackHole(tilex*TILE_WIDTH,tiley*TILE_HEIGHT);
 					blackhole01.generate();
 					blackholes.add (blackhole01);
 				}
@@ -744,6 +933,7 @@ package
 				{
 					blackhole01.x = Sprite1.x// TILE_WIDTH * TILE_WIDTH;
 					blackhole01.y = Sprite1.y// TILE_HEIGHT * TILE_HEIGHT;
+
 					blackhole01.generate();
 				}
 				

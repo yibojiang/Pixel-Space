@@ -48,9 +48,9 @@ package
 		override public function update():void
 		{
 			_timer += FlxG.elapsed;
-			var limit:uint = 20;
+			var limit:uint = 40;
 			if(onScreen())
-				limit = 4;
+				limit = 15;
 			if(_timer > limit)
 			{
 				_timer = 0;
@@ -99,7 +99,7 @@ package
 			FlxG.camera.shake(0.007,0.25);
 			FlxG.camera.flash(0xffd8eba2,0.65,turnOffSlowMo);
 			//FlxG.timeScale = 0.35;
-			makeBot();
+			//makeBot();
 			_gibs.at(this);
 			_gibs.start(true,3);
 			FlxG.score += 1000;

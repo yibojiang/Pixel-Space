@@ -16,7 +16,7 @@ package
 		[Embed(source="data/bot.png")] protected var ImgEnemy:Class;
 		[Embed(source="data/heart.png")] public var ImgGibs:Class;
 		[Embed(source="data/cursor.png")] public var ImgCursor:Class;
-		[Embed(source="data/menu_hit.mp3")] public var SndHit:Class;
+		[Embed(source="data/title.mp3")] public var SndHit:Class;
 		[Embed(source = "data/menu_hit_2.mp3")] public var SndHit2:Class;
 		[Embed(source = "data/menu_select.mp3")] public var SndMenuSelect:Class;
 		
@@ -79,22 +79,7 @@ package
 			levelArray[4] = "Map4";
 			
 			FlxG.bgColor = 0xff000000;
-			
-			//Simple use of flixel save game object.
-			//Tracks number of times the game has been played.
-			var save:FlxSave = new FlxSave();
-			if(save.bind("Mode"))
-			{
-				if(save.data.plays == null)
-					save.data.plays = 0 as Number;
-				else
-					save.data.plays++;
-				FlxG.log("Number of plays: "+save.data.plays);
-				//save.erase();
-				save.close();
-			}
 
-			//All the bits that blow up when the text smooshes together
 			gibs = new FlxEmitter(FlxG.width/2-50,FlxG.height/2-10);
 			gibs.setSize(100,30);
 			gibs.setYSpeed(-200,-20);
@@ -103,20 +88,19 @@ package
 			gibs.makeParticles(ImgGibs,30,32,true,0);
 			add(gibs);
 
-			title1 = new FlxText(FlxG.width + 16,FlxG.height/3,64,"Lo");
+			
+			
+			title1 = new FlxText(FlxG.width / 2 - 150, FlxG.height / 3, 300, "NeverLand");
+			title1.alignment =  "center";
 			title1.size = 32;
 			title1.color = 0xff99cc;
+			title1.alpha = 0;
 			title1.antialiasing = true;
-			add(title1);
 			
-			TweenMax.to(title1, 0.8, {x:FlxG.width/2-40, ease:Quad.easeIn,onComplete:titleFinished});
-			title2 = new FlxText(-60,title1.y,title1.width+8,"ve");
-			title2.size = title1.size;
-			title2.color = title1.color;
-			title2.antialiasing = title1.antialiasing;
-			//title2.velocity.x = FlxG.width;
-			add(title2);
-			TweenMax.to(title2, 0.8, {x:FlxG.width/2, ease:Quad.easeIn});
+			
+			add(title1);
+			TweenMax.to(title1, 0.8, {alpha:1, ease:Quad.easeIn, onComplete:titleFinished } );
+	
 			
 			
 			fading = false;
@@ -132,7 +116,7 @@ package
 			gibs = null;
 			
 			title1 = null;
-			title2 = null;
+
 			continueText = null;
 		}
 
@@ -176,19 +160,20 @@ package
 		public function titleFinished():void
 		{
 			var text:FlxText;
-			text = new FlxText(FlxG.width/2-50,FlxG.height/3+39,100,"by Sunfish")
+			text = new FlxText(FlxG.width/2-50,FlxG.height/3+45,100,"by Sunfish")
 			text.alignment = "center";
+			
 			text.color = 0xffccff;
 			add(text);
 			
+			title1.shadow = 0xffff;
+			
 			FlxG.play(SndHit);
-			//FlxG.flash(0xffd8eba2,0.5);
+			FlxG.flash(0xffd8eba2,0.5);
 			FlxG.shake(0.035,0.5);
-			title1.color = 0xff99cc;
-			title2.color = 0xff99cc;
-			gibs.start(true,5);
-			//title1.angle = FlxG.random()*30-15;
-			//title2.angle = FlxG.random()*30-15;
+	
+			//gibs.start(true,5);
+	
 			gotoTitle();
 		}
 		
@@ -320,17 +305,7 @@ package
 			}
 		}
 		
-		protected function clamp(Value:int,Min:int,Max:int):int
-		{
-			if (Value < Min)
-				return Min;
-			
-			if (Value > Max)
-				return Max;
-			
-			return Value;
-		}
-		
+	
 		//This function is passed to FlxG.fade() when we are ready to go to the next game state.
 		//When FlxG.fade() finishes, it will call this, which in turn will either load
 		//up a game demo/replay, or let the player start playing, depending on user input.

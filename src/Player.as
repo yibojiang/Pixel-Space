@@ -5,20 +5,15 @@ package
 	import com.greensock.easing.*;
 	public class Player extends FlxSprite implements ITransportable
 	{
-		[Embed(source="data/bot.png")] protected var ImgBot:Class;
-		
+		[Embed(source="data/spaceship.png")] protected var ImgBot:Class;
 		[Embed(source="data/jump.mp3")] protected var SndJump:Class;
 		[Embed(source="data/land.mp3")] protected var SndLand:Class;
 		[Embed(source="data/asplode.mp3")] protected var SndExplode:Class;
 		[Embed(source="data/menu_hit_2.mp3")] protected var SndExplode2:Class;
 		[Embed(source="data/hurt.mp3")] protected var SndHurt:Class;
 		[Embed(source = "data/jam.mp3")] protected var SndJam:Class;
-		
 		[Embed(source = "data/jet.mp3")] protected var SndJet:Class;
 		[Embed(source="data/jet.png")] protected var ImgJet:Class;
-		
-		
-		
 		
 		protected var _jumpPower:int;
 		protected var _bullets:FlxGroup;
@@ -33,7 +28,12 @@ package
 		public var isTransfering:Boolean;
 		
 		public var scaleX:Number=1;
-		public var scaleY:Number=1;
+		public var scaleY:Number = 1;
+		
+		public var material:uint = 0;
+		public var key:uint = 0;
+		
+		public var cameraRotateMdoe:Boolean=false;
 		
 		//This is the player object class.  Most of the comments I would put in here
 		//would be near duplicates of the Enemy class, so if you're confused at all
@@ -51,20 +51,14 @@ package
 			height = 12;
 			centerOffsets();
 	
-			
-			//basic player physics
-			//var runSpeed:uint = 80;
-			drag.x = 80 ;
+			drag.x = 80;
 			drag.y = 80;
-			//acceleration.y = 420;
-			//_jumpPower = 200;
+
 			maxVelocity.x = 80;
 			maxVelocity.y = 80;
 			
-			//bullet stuff
 			_bullets = Bullets;
-			
-			
+
 			_gibs = Gibs;
 			
 			_jets = new FlxEmitter();
@@ -88,14 +82,9 @@ package
 			angle = angle%360;
 			this.x = _blackhole2.x+8;
 			this.y = _blackhole2.y+8;
-			
-			
 
 			var newX:Number =  32 * Math.sin((angle)/180*Math.PI);
 			var newY:Number = - 32 * Math.cos((angle)/180*Math.PI);
-			//trace(angle+" "+newX + " " + newY);
-			//TweenMax.to(this, _time/2, {(scale.x):1,(scale.y):1});
-			//TweenMax.to(this, _time, {x:x+newX,y:y+newY,scaleX:1,scaleY:1,  angle:angle+720, ease:Quad.easeOut,onComplete:transferFinished});
 			TweenMax.to(this, _time, {scaleX:1,scaleY:1,  angle:angle+720, ease:Quad.easeOut,onComplete:transferFinished});
 		}
 		
@@ -119,6 +108,7 @@ package
 		
 		override public function update():void
 		{
+			
 			scale.x = scaleX;
 			scale.y = scaleY;
 			var jetsOn:Boolean = false;
@@ -139,13 +129,31 @@ package
 			acceleration.x = 0;
 			acceleration.y = 0;
 			
+			//angle %= 360;
+			
+			//TweenMax.to(FlxG.camera, 1, { angle: (-angle)%180 } );
+			
+			FlxG.watch(FlxG.camera,"angle");
+			FlxG.watch(this,"angle");
 			if(FlxG.keys.LEFT)
 			{
+				
+				if (cameraRotateMdoe)
+				{
+					FlxG.camera.angle += 5;
+				}
+				
 				angle -= 5;
 
 			}
 			else if(FlxG.keys.RIGHT)
 			{
+				
+				if (cameraRotateMdoe)
+				{
+					FlxG.camera.angle -= 5;
+				}
+				
 				angle += 5;
 			}
 			
@@ -166,6 +174,12 @@ package
 			
 			}
 			
+			if(FlxG.keys.justPressed("R") )
+			{
+				FlxG.camera.angle = -angle;
+				cameraRotateMdoe = !cameraRotateMdoe;
+				
+			}
 			
 			
 			//SHOOTING

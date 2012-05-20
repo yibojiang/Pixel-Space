@@ -8,7 +8,7 @@ package
 
 	public class Enemy extends FlxSprite implements ITransportable
 	{
-		[Embed(source="data/bot.png")] protected var ImgBot:Class;
+		[Embed(source="data/bot_blue.png")] protected var ImgBot:Class;
 		[Embed(source="data/jet.png")] protected var ImgJet:Class;
 		[Embed(source="data/asplode.mp3")] protected var SndExplode:Class;
 		[Embed(source="data/hit.mp3")] protected var SndHit:Class;
@@ -71,7 +71,7 @@ package
 		//Each time an Enemy is recycled (in this game, by the Spawner object)
 		//we call init() on it afterward.  That allows us to set critical parameters
 		//like references to the player object and the ship's new position.
-		public function init(xPos:int,yPos:int,Bullets:FlxGroup,Gibs:FlxEmitter,ThePlayer:Player):void
+		public function init(xPos:int, yPos:int, Bullets:FlxGroup, Gibs:FlxEmitter,ThePlayer:Player):void
 		{
 			_player = ThePlayer;
 			_bullets = Bullets;
