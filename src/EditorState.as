@@ -82,8 +82,7 @@ package
 		
 		override public function create():void
 		{
-			FlxG.framerate = 60;
-			FlxG.flashFramerate = 60;
+			
 			//Here we are creating a pool of 100 little metal bits that can be exploded.
 			//We will recycle the crap out of these!
 			_littleGibs = new FlxEmitter();

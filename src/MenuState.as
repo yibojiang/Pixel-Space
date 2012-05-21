@@ -199,7 +199,9 @@ package
 		public function gotoPlay():void
 		{
 			FlxG.play(SndHit2);
-			FlxG.flash(0xffd8eba2,0.5);
+			FlxG.flash(0xffd8eba2, 0.5);
+			FlxG.fade(0xff131c1b, 1, gotoGameState);
+			fading = true;
 		}
 		
 		public function gotoEditorMenu():void
@@ -215,7 +217,8 @@ package
 			fading = true;
 			FlxG.play(SndHit2);
 			FlxG.flash(0xffd8eba2,0.5);
-			FlxG.fade(0xff131c1b,1,onFade);
+			FlxG.fade(0xff131c1b, 1, gotoEditorState);
+			fading = true;
 		}
 		
 		override public function update():void
@@ -224,6 +227,10 @@ package
 			
 			super.update();
 			
+			if (fading)
+			{
+				return;
+			}
 			timer += FlxG.elapsed;
 			//if(timer >= 10) //go into demo mode if no buttons are pressed for 10 seconds
 				//attractMode = true;	
@@ -231,7 +238,7 @@ package
 			arrow.y = menuIndex * 20 + FlxG.height / 3+69;
 			if (menuState == 0)//Title
 			{
-				if(!fading && (FlxG.keys.justPressed("SPACE") || attractMode)) 
+				if(!fading && (FlxG.keys.justPressed("SPACE") )) 
 				{
 					FlxG.flash(0xffd8eba2,0.5);
 					FlxG.play(SndHit2);
@@ -305,21 +312,15 @@ package
 			}
 		}
 		
-	
-		//This function is passed to FlxG.fade() when we are ready to go to the next game state.
-		//When FlxG.fade() finishes, it will call this, which in turn will either load
-		//up a game demo/replay, or let the player start playing, depending on user input.
-		protected function onFade():void
+		
+		protected function gotoEditorState():void
 		{
-			if (attractMode)
-			{
-				FlxG.loadReplay((FlxG.random() < 0.5)?(new Attract1()):(new Attract2()), new PlayState(), ["ANY"], 22, onDemoComplete);
-			}
-			else
-			{
-				//FlxG.switchState(new PlayState());
-				FlxG.switchState(new EditorState());
-			}
+			FlxG.switchState(new EditorState());
+		}
+		
+		protected function gotoGameState():void
+		{
+			FlxG.switchState(new StoryState());
 		}
 		
 		//This function is called by FlxG.loadReplay() when the replay finishes.
