@@ -19,7 +19,7 @@ package
 		
 		
 		[Embed(source = "data/JOKERMAN.ttf", embedAsCFF = "false", fontFamily = 'JOKERMAN')] private const FontJOKERMAN:Class;
-		[Embed(source = "data/msyh.ttf", embedAsCFF="false", fontFamily = 'msyh')] private const Fontmayh:Class;
+		[Embed(source = "data/songti.ttf", embedAsCFF="false", fontFamily = '简宋')] private const FontSong:Class;
 		
 		protected var storyText:FlxText;
 		
@@ -48,7 +48,7 @@ package
 			
 			storyText = new FlxText(FlxG.width / 2 - 150, 150, 300, "");
 			storyText.alignment =  "left";
-			storyText.font = "msyh";
+			storyText.font = "简宋";
 			storyText.size = 10;
 			storyText.color = 0xffffff;
 			storyText.antialiasing = true;
