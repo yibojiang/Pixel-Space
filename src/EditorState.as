@@ -468,7 +468,18 @@ package
 			{
 				return new Levels.Level1();
 			}
-			
+			else if (MenuState.currentLevelIndex == 2)
+			{
+				return new Levels.Level2();
+			}
+			else if (MenuState.currentLevelIndex == 3)
+			{
+				return new Levels.Level3();
+			}
+			else if (MenuState.currentLevelIndex == 4)
+			{
+				return new Levels.Level4();
+			}
 			return "";
 		}
 		
