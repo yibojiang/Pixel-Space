@@ -22,8 +22,7 @@ package
 		
 		
 		//Replay data for the "Attract Mode" gameplay demos
-		[Embed(source="data/attract1.fgr",mimeType="application/octet-stream")] public var Attract1:Class;
-		[Embed(source="data/attract2.fgr",mimeType="application/octet-stream")] public var Attract2:Class;
+
 		
 		public var gibs:FlxEmitter;
 		public var title1:FlxText;
