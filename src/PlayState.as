@@ -43,6 +43,12 @@ package
 				}
 				save.close();
 			}
+			
+			if (MenuState.currentLevelIndex == 2)
+			{
+				_player.cameraRotateMdoe = true;
+			}
+			
 			toolSelection.exists = false;
 			toolBox.exists = false;
 			highlightBox.exists = false;

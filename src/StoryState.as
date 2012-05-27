@@ -69,6 +69,7 @@ package
 		
 		override public function destroy():void
 		{
+			storyText = null;
 			super.destroy();
 		}
 		
@@ -80,7 +81,7 @@ package
 		override public function update():void
 		{
 			super.update();
-			if (FlxG.keys.justPressed("Z"))
+			if (FlxG.keys.justPressed("SPACE"))
 			{
 
 				if (curStoryIndex < story.length-1 )

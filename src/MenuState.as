@@ -41,7 +41,7 @@ package
 		public var title2:FlxText;
 		public var fading:Boolean;
 		public var timer:Number;
-		public var attractMode:Boolean;
+
 		
 		public var pathFollower:FlxSprite;
 		public var testPath:FlxPath;
@@ -94,12 +94,16 @@ package
 			
 			FlxG.bgColor = 0xff000000;
 
+			
+			var titlebg:FlxSprite = new FlxSprite(0, 0, ImgTitle);
+			add(titlebg);
+			
 			gibs = new FlxEmitter(0,0,1000);
 			gibs.setSize(FlxG.width, FlxG.height/10);
 			//gibs.setYSpeed(-200,-20);
 			gibs.setRotation( -360, 360);
 			
-			gibs.lifespan = 100;
+			//gibs.lifespan = 100;
 			//gibs.gravity = 100;
 			gibs.makeParticles(ImgGibs,30,20,true,0.8);
 			add(gibs);
@@ -111,8 +115,7 @@ package
 			
 			FlxG.playMusic(BgmMenu,0.8);
 			
-			var titlebg:FlxSprite = new FlxSprite(0, 0, ImgTitle);
-			add(titlebg);
+			
 			
 			title1 = new FlxText(FlxG.width / 2 - 150, FlxG.height / 3, 300, "NeverLand");
 			title1.alignment =  "center";
@@ -132,7 +135,7 @@ package
 			
 			fading = false;
 			timer = 0;
-			attractMode = false;
+
 			
 			initMenu();
 		}
@@ -394,6 +397,7 @@ package
 		protected function gotoGameState():void
 		{
 			FlxG.switchState(new StoryState());
+			//FlxG.switchState(new EndStoryState());
 		}
 		
 

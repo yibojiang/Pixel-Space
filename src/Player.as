@@ -108,9 +108,14 @@ package
 		
 		public function nextLevel():void
 		{
-			if (MenuState.currentLevelIndex <=MenuState.maxLevel)
+			if (MenuState.currentLevelIndex <MenuState.maxLevel)
 			{
 				MenuState.currentLevelIndex++;
+			}
+			else
+			{
+				FlxG.switchState(new EndStoryState());
+				return;
 			}
 			FlxG.resetState();
 		}
