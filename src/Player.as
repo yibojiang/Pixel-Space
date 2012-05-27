@@ -108,7 +108,7 @@ package
 		
 		public function nextLevel():void
 		{
-			if (MenuState.currentLevelIndex <= maxLevel)
+			if (MenuState.currentLevelIndex <=MenuState.maxLevel)
 			{
 				MenuState.currentLevelIndex++;
 			}

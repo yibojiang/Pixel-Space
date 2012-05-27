@@ -26,7 +26,7 @@ package
 		
 		
 		//Replay data for the "Attract Mode" gameplay demos
-<<<<<<< HEAD
+
 		//[Embed(source="data/attract1.fgr",mimeType="application/octet-stream")] public var Attract1:Class;
 		//[Embed(source="data/attract2.fgr",mimeType="application/octet-stream")] public var Attract2:Class;
 		
@@ -35,9 +35,6 @@ package
 		
 		
 		[Embed(source = "data/JOKERMAN.ttf", embedAsCFF = "false", fontFamily = 'JOKERMAN')] private const FontJOKERMAN:Class;
-=======
-
->>>>>>> d0a22988397dffec208eeca2c2037b8aca4cb5c3
 		
 		public var gibs:FlxEmitter;
 		public var title1:FlxText;

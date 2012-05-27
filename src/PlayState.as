@@ -61,9 +61,10 @@ package
 
 		override public function update():void
 		{			
-			//save off the current score and update the game state
+			
 			
 			super.update();
+			editorUI.exists = false;
 			
 		}
 
