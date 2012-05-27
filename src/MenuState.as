@@ -20,10 +20,20 @@ package
 		[Embed(source = "data/menu_hit_2.mp3")] public var SndHit2:Class;
 		[Embed(source = "data/menu_select.mp3")] public var SndMenuSelect:Class;
 		
+		[Embed(source = "data/Action_Melody_Menu.mp3")] public var BgmMenu:Class;
+		
+		[Embed(source = "data/peterpan.png")] public var ImgPeterpan:Class;
+		
 		
 		//Replay data for the "Attract Mode" gameplay demos
-		[Embed(source="data/attract1.fgr",mimeType="application/octet-stream")] public var Attract1:Class;
-		[Embed(source="data/attract2.fgr",mimeType="application/octet-stream")] public var Attract2:Class;
+		//[Embed(source="data/attract1.fgr",mimeType="application/octet-stream")] public var Attract1:Class;
+		//[Embed(source="data/attract2.fgr",mimeType="application/octet-stream")] public var Attract2:Class;
+		
+		
+		[Embed(source = "data/titlebg.jpg")] public var ImgTitle:Class;
+		
+		
+		[Embed(source = "data/JOKERMAN.ttf", embedAsCFF = "false", fontFamily = 'JOKERMAN')] private const FontJOKERMAN:Class;
 		
 		public var gibs:FlxEmitter;
 		public var title1:FlxText;
@@ -39,6 +49,9 @@ package
 		
 		public static var levelArray:Array;
 		public static var currentLevelIndex:int = 0;
+		
+		public static var maxLevel:int = 2;
+		public static var starNeed:int = 10;
 		
 		public var continueText:FlxText;
 		
@@ -80,20 +93,33 @@ package
 			
 			FlxG.bgColor = 0xff000000;
 
-			gibs = new FlxEmitter(FlxG.width/2-50,FlxG.height/2-10);
-			gibs.setSize(100,30);
-			gibs.setYSpeed(-200,-20);
-			gibs.setRotation(-360,360);
-			gibs.gravity = 100;
-			gibs.makeParticles(ImgGibs,30,32,true,0);
-			add(gibs);
-
+			gibs = new FlxEmitter(0,0,1000);
+			gibs.setSize(FlxG.width, FlxG.height/10);
+			//gibs.setYSpeed(-200,-20);
+			gibs.setRotation( -360, 360);
 			
+			gibs.lifespan = 100;
+			//gibs.gravity = 100;
+			gibs.makeParticles(ImgGibs,30,20,true,0.8);
+			add(gibs);
+			gibs.setXSpeed (-20,20);
+			gibs.setYSpeed (20,100);
+			
+			gibs.start(false, 15, 0.5, 20000);
+			
+			
+			FlxG.playMusic(BgmMenu,0.8);
+			
+			var titlebg:FlxSprite = new FlxSprite(0, 0, ImgTitle);
+			add(titlebg);
 			
 			title1 = new FlxText(FlxG.width / 2 - 150, FlxG.height / 3, 300, "NeverLand");
 			title1.alignment =  "center";
+			title1.font = "JOKERMAN";
 			title1.size = 32;
-			title1.color = 0xff99cc;
+			//title1.color = 0xff99cc;
+			title1.color = 0x00736d;
+			
 			title1.alpha = 0;
 			title1.antialiasing = true;
 			
@@ -123,8 +149,9 @@ package
 		
 		public function initMenu():void
 		{	
-			continueText = new FlxText(FlxG.width/2-75,FlxG.height/3+69,150,"Press 'Space' to continue");
+			continueText = new FlxText(FlxG.width/2-100,FlxG.height/3+85,200,"Press 'Space' to continue");
 			continueText.color = 0xffffff;
+			continueText.size = 10;
 			continueText.alignment = "center";
 			add(continueText);
 			continueText.exists = false;
@@ -157,16 +184,53 @@ package
 			levelSelectText.exists = false;
 		}
 		
+		public function generatePeterpan():void
+		{
+			
+			
+			
+			var timeline:TimelineMax = new TimelineMax({repeat:-1, repeat:true, repeatDelay:1.5});
+			
+			//timeline.insertMultiple( TweenMax.allFrom([logo, timelineWord, maxWord, byGreenSock], 0.5, {autoAlpha:0}, 0.25), 0.6);
+			//timeline.insertMultiple( TweenMax.allFrom(lettersArray, 1, { y:"-30", alpha:0, ease:Elastic.easeOut }, 0.04), 1.4);
+			
+			var peterpan:FlxSprite = new FlxSprite(-50, 15);
+			//peterpan.loadRotatedGraphic(ImgPeterpan, 30, 0,true);
+			peterpan.loadGraphic(ImgPeterpan, true);
+			peterpan.addAnimation("fly", [0,1], 15,true);
+			peterpan.play("fly");
+			peterpan.angle = 60;
+			timeline.append( TweenMax.fromTo(peterpan, 5, { x: -50, y:15 }, { x:FlxG.width/2, y:50, ease:Quad.easeInOut } ) );
+			timeline.append( TweenMax.to(peterpan, 5,{x:FlxG.width,y:15, ease:Quad.easeInOut } ) );
+			//timeline.append( TweenMax.fromTo(peterpan, 1,{angle:0}, { angle:90,ease:Quad.easeInOut } ) );
+			add(peterpan);
+		}
+		
+		
 		public function titleFinished():void
 		{
 			var text:FlxText;
-			text = new FlxText(FlxG.width/2-50,FlxG.height/3+45,100,"by Sunfish")
+			text = new FlxText(FlxG.width/2-51,FlxG.height/3+45,102,"Designed by Sunfish")
 			text.alignment = "center";
 			
 			text.color = 0xffccff;
+			text.shadow=0xccff;
+			
 			add(text);
 			
 			title1.shadow = 0xffff;
+			generatePeterpan();
+			
+			
+			/*
+			text = new FlxText(FlxG.width/2-50,FlxG.height/3+135,100,"Music provided by IO & Gryzor")
+			text.alignment = "center";
+			
+			text.color = 0xffccff;
+			title1.shadow = 0xffff;
+			add(text);
+			*/
+			
 			
 			FlxG.play(SndHit);
 			FlxG.flash(0xffd8eba2,0.5);
@@ -232,12 +296,20 @@ package
 				return;
 			}
 			timer += FlxG.elapsed;
+			FlxG.watch(this, "timer");
 			//if(timer >= 10) //go into demo mode if no buttons are pressed for 10 seconds
 				//attractMode = true;	
 			
 			arrow.y = menuIndex * 20 + FlxG.height / 3+69;
 			if (menuState == 0)//Title
 			{
+				
+				if (timer>=1	)
+				{
+					timer = 0;
+					continueText.visible = !continueText.visible;
+				}
+				
 				if(!fading && (FlxG.keys.justPressed("SPACE") )) 
 				{
 					FlxG.flash(0xffd8eba2,0.5);
@@ -323,20 +395,6 @@ package
 			FlxG.switchState(new StoryState());
 		}
 		
-		//This function is called by FlxG.loadReplay() when the replay finishes.
-		//Here, we initiate another fade effect.
-		protected function onDemoComplete():void
-		{
-			FlxG.fade(0xff131c1b,1,onDemoFaded);
-		}
-		
-		//Finally, we have another function called by FlxG.fade(), this time
-		//in relation to the callback above.  It stops the replay, and resets the game
-		//once the gameplay demo has faded out.
-		protected function onDemoFaded():void
-		{
-			FlxG.stopReplay();
-			FlxG.resetGame();
-		}
+
 	}
 }

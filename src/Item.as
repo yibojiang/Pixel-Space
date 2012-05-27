@@ -9,7 +9,9 @@ package
 	 */
 	public class Item extends FlxSprite 
 	{
+		
 		[Embed(source = "data/move_tiles.png")] private var ImgMVTile:Class;
+		
 		public static const Star:uint = 0;
 		public static const Material:uint = 1;
 		

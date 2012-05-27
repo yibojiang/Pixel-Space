@@ -19,14 +19,16 @@ package
 		
 		
 		[Embed(source = "data/JOKERMAN.ttf", embedAsCFF = "false", fontFamily = 'JOKERMAN')] private const FontJOKERMAN:Class;
-		[Embed(source = "data/songti.ttf", embedAsCFF="false", fontFamily = '简宋')] private const FontSong:Class;
+		[Embed(source = "data/menu_hit_2.mp3")] public var SndHit2:Class;
 		
 		protected var storyText:FlxText;
 		
 		protected var story:Array;
 		protected var storyImage:Array;
 		
-		protected var curStoryIndex:uint=0;
+		protected var curStoryIndex:uint = 0;
+		
+		protected var fading:Boolean = false;
 		
 		override public function create():void
 		{
@@ -39,16 +41,16 @@ package
 			storyImage[3]= new FlxSprite(FlxG.width / 2 -100, 50, ImgStory4); 
 			storyImage[4] = new FlxSprite(FlxG.width / 2 -100, 50, ImgStory5); 
 			storyImage[5] = new FlxSprite(FlxG.width / 2 -100, 50, ImgStory6); 
-			story[0] = "又是一天华灯初上的时候，我们的彼得潘在寻找适合永无岛的新的母亲。他穿过了巴黎，穿过了伦敦，趴在了每一扇家里躺着小女孩的窗户外，想找到和温迪相似的人。";
-			story[1] = "正在他苦苦寻找之际，突然天空中滑过一阵闪电，整片大地瞬间变成了亮白色，一时没注意到如此变故的彼得潘被亮光照耀的睁不开双眼。";
-			story[2] = "他只听得一声巨响，他看不到天空中出现了一架彩色的UFO，上面印有P.A.N的字母。";
-			story[3] = "等彼得潘眼睛视力恢复的时候，他发现他居然无法控制自己的飞行，因为他被飞船强大的吸力给困住，吸进了飞船里！";
-			story[4] = "等彼得潘眼睛视力恢复的时候，他发现他居然无法控制自己的飞行，因为他被飞船强大的吸力给困住，吸进了飞船里！";
-			story[5] = "飞船抓了彼得潘后霎时便又飞走了。天空又恢复了一片安静。好像什么都没有发生。";
+			story[0] = "Once upon a time,there was a boy named Peter Pan. He looked for a girl like Windy everywhere. He flied through London,Paris and so on.";
+			story[1] = "Suddenly,there came a thunder from the sky, all the land became white. ";
+			story[2] = "Peter Pan could't open his eyes.He heard a loud crash.What he couldn't see was that a colorful UFO in the deep blue sky.On the UFO there were three letters \"p,a,n\"";
+			story[3] = "When Peter Pan could see it was too late. He couldn't fly any more as he was involved in the UFO.";
+			story[4] = "When Peter Pan could see it was too late. He couldn't fly any more as he was involved in the UFO.";
+			story[5] = "The UFO disappeared in several seconds after that.The sky was quite again as there was nothing happened before.";
 			
 			storyText = new FlxText(FlxG.width / 2 - 150, 150, 300, "");
 			storyText.alignment =  "left";
-			storyText.font = "简宋";
+			storyText.font = "JOKERMAN";
 			storyText.size = 10;
 			storyText.color = 0xffffff;
 			storyText.antialiasing = true;
@@ -88,11 +90,25 @@ package
 					storyText.text = story[curStoryIndex];
 					add(storyImage[curStoryIndex]);
 				}
+				else
+				{
+					if (!fading)
+					{
+						FlxG.play(SndHit2);
+						FlxG.flash(0xffd8eba2, 0.5);
+						FlxG.play(SndHit2);
+						FlxG.fade(0xff131c1b, 1, gotoGameState);
+						fading = true;
+					}
+				}
 			}
 			
 		}
 		
-		
+		protected function gotoGameState():void
+		{
+			FlxG.switchState(new PlayState());
+		}
 		
 	}
 

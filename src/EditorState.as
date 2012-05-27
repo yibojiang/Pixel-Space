@@ -44,17 +44,17 @@ package
 		protected var _hud:FlxGroup;
 		protected var _fading:Boolean;
 		
-		private var highlightBox:FlxSprite;
+		protected var highlightBox:FlxSprite;
 		
 		private const TILE_WIDTH:uint = 16;
 		private const TILE_HEIGHT:uint = 16;
 		private var mapWidth:uint = 640;
 		private var mapHeight:uint = 640;
 		
-		private var collisionMap:FlxTilemap;
-		private var nonCollisionMap:FlxTilemap;
-		private var backgroundMap:FlxTilemap;
-		private var moveMap:FlxTilemap;
+		protected var collisionMap:FlxTilemap;
+		protected var nonCollisionMap:FlxTilemap;
+		protected var backgroundMap:FlxTilemap;
+		protected var moveMap:FlxTilemap;
 		
 	
 		
@@ -77,8 +77,15 @@ package
 		
 		protected var playButton:FlxButton;
 		
+		protected var starCountText:FlxText;
+		
+		
+		protected var diamondCountText:FlxText;
+		
 		//editor mode or playmode
 		protected var isPlaying:Boolean = false;
+		
+		protected var endLevel:LevelHole;
 		
 		override public function create():void
 		{
@@ -167,6 +174,36 @@ package
 			_objects.add(_bigGibs);
 			
 			
+			var starCountIcon:FlxSprite = new FlxSprite(276, 7);
+			starCountIcon.loadGraphic(ImgMVTile, false, false, 16);
+			starCountIcon.frame = 3;
+			starCountIcon.scale.x = 1.4;
+			starCountIcon.scale.y = 1.4;
+			starCountText = new FlxText(295, 7, 40, "50");
+			starCountText.alignment = "left";
+			//starCountText.color = 0xff7e00;
+			starCountText.shadow = 0xff3600;
+			starCountText.size = 11;
+			
+			var diamondCountIcon:FlxSprite = new FlxSprite(236, 7);
+			diamondCountIcon.loadGraphic(ImgMVTile, false, false, 16);
+			diamondCountIcon.frame = 4;
+			diamondCountIcon.scale.x = 1.4;
+			diamondCountIcon.scale.y = 1.4;
+			
+			diamondCountText = new FlxText(255, 7, 40, "50");
+			diamondCountText.alignment = "left";
+			//starCountText.color = 0xff7e00;
+			diamondCountText.shadow = 0xff3600;
+			diamondCountText.size = 11;
+			
+			_hud.add(diamondCountIcon);
+			_hud.add(diamondCountText);
+			
+			
+			_hud.add(starCountIcon);
+			_hud.add(starCountText);
+			
 			_hud.setAll("scrollFactor",new FlxPoint(0,0));
 			_hud.setAll("cameras", [FlxG.camera]);
 			
@@ -228,13 +265,32 @@ package
 					_player.x = 100;
 					_player.y = 100;
 				}
+				
+				if (save.data.endlevel != null)
+				{
+					endLevel = new LevelHole(save.data.endlevel[0].x, save.data.endlevel[0].y);
+					endLevel.exists = false;
+					add(endLevel );
+				}
+				else
+				{
+					endLevel = new LevelHole(0, 0);
+					endLevel.exists = false;
+					add(endLevel );
+				}
+
+				
 				save.close();
 			}
 			
 			
+			
+			
+			
+			
 		}
 		
-		private function generateStar():void
+		protected function generateStar():void
 		{
 			var save:FlxSave = new FlxSave();
 			if (save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
@@ -253,7 +309,7 @@ package
 			save.close();
 		}
 		
-		private function generateEnemy():void
+		protected function generateEnemy():void
 		{
 			var save:FlxSave = new FlxSave();
 			if (save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
@@ -290,7 +346,7 @@ package
 			save.close();
 		}
 		
-		private function addTool():void
+		protected function addTool():void
 		{
 			tools = new FlxGroup();
 			toolBox = new FlxGroup();
@@ -395,6 +451,14 @@ package
 			tools.add(c);
 			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
 			
+			
+			c=new CustomTile(TileType.MoveTile, 6, "endflag");
+			c.x = 16;
+			c.y = 16+tools.length*16;
+			currentTools.push(c);
+			tools.add(c);
+			toolBox.add(new FlxSprite(c.x, c.y, ImgMiniFrame));
+			
 			var saveButton:FlxButton = new FlxButton(FlxG.width / 2-40, FlxG.height / 3, "Save", onSave);
 
 			saveButton.color = 0xff729954;
@@ -436,6 +500,35 @@ package
 			generateStar();
 			paused = false;
 			_fading = false;
+			
+			var save:FlxSave = new FlxSave();
+			if (save.bind(MenuState.levelArray[MenuState.currentLevelIndex]))
+			{
+				if (save.data.player != null)
+				{
+					_player.x = save.data.player[0].x;
+					_player.y = save.data.player[0].y;	
+				}
+				else
+				{
+					_player.x = 100;
+					_player.y = 100;
+				}
+				
+				if (save.data.endlevel != null)
+				{
+					endLevel = new LevelHole(save.data.endlevel[0].x, save.data.endlevel[0].y);
+					endLevel.exists = false;
+					add(endLevel );
+				}
+				else
+				{
+					endLevel = new LevelHole(0, 0);
+					endLevel.exists = false;
+					add(endLevel );
+				}
+				save.close();
+			}
 
 		}
 		
@@ -608,6 +701,7 @@ package
 				save.data.star = moveMap.getTileCoords(3, false);
 				save.data.enemytower=moveMap.getTileCoords(5, false);
 				save.data.mvmaps = maps;
+				save.data.endlevel=moveMap.getTileCoords(6,false);
 				
 				if (!isPlaying)
 				{
@@ -756,8 +850,26 @@ package
 			}
 			super.update();
 			
+			
+			if (_player.key >= MenuState.starNeed)
+			{
+				if (!endLevel.exists)
+				{
+					endLevel.show();
+				}
+				else
+				{
+					FlxG.overlap(endLevel, _player, enterNextLevel,FlxObject.separate);
+				}
+			}
+			
+			starCountText.text = _player.key + "";
+			diamondCountText.text = _player.material + "";
 		
-			toolSelectionUpdate();
+			if (!isPlaying)
+			{
+				toolSelectionUpdate();
+			}
 			
 			FlxG.collide(_bullets, collisionMap, createBlackhole);
 			FlxG.collide(_enemyBullets, collisionMap, createBlackhole);
@@ -772,7 +884,7 @@ package
 			FlxG.overlap(_bullets, _hazards, overlapped);
 			
 			FlxG.overlap(_player, _items, getItem);
-			
+	
 			
 			if  (blackhole01 != null && blackhole02 != null && blackhole01.available &&  blackhole02.available )
 			{
@@ -783,6 +895,16 @@ package
 				
 			}
 		}
+		
+		protected function enterNextLevel(TheEndLevel:LevelHole,ThePlayer:Player):void
+		{
+			if (endLevel.available)
+			{
+				_player.transferToNextLevel(endLevel.x+8,endLevel.y+8);
+			}
+		}
+		
+	
 		
 		protected function getItem(Sprite1:Player, Sprite2:Item):void
 		{
@@ -912,26 +1034,7 @@ package
 			if ((Sprite1 is PortalBullet) && (Sprite2 is FlxTilemap) )
 			{
 				var pBullet:PortalBullet = Sprite1 as PortalBullet;
-				/*
-				var tilex:Number =  Sprite1.x/ TILE_WIDTH;
-				var tiley:Number =  Sprite1.y/ TILE_HEIGHT; 
-				if (Sprite1.justTouched(FlxObject.DOWN))
-				{
-					tiley = Math.ceil(tiley)-2;
-				}
-				else if (Sprite1.justTouched(FlxObject.UP))
-				{
-					tiley = Math.ceil(tiley);
-				}
-				else if (Sprite1.justTouched(FlxObject.LEFT))
-				{
-					tilex = Math.ceil(tilex);
-				}
-				else if (Sprite1.justTouched(FlxObject.RIGHT))
-				{
-					tilex = Math.ceil(tilex)-2;
-				}
-				*/
+			
 				if (pBullet.type == 1 && blackhole01 ==null)
 				{
 					blackhole01 = new BlackHole(Sprite1.x,Sprite1.y );

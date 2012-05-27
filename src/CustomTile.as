@@ -53,6 +53,7 @@ package
 				addAnimation("star", [3], 50, false);
 				addAnimation("diamond", [4], 50, false);
 				addAnimation("enemytower", [5], 50, false);
+				addAnimation("endflag", [6], 50, false);
 			}
 			frame = Index;
 			

@@ -33,7 +33,12 @@ package
 		public var material:uint = 0;
 		public var key:uint = 0;
 		
-		public var cameraRotateMdoe:Boolean=false;
+		public var cameraRotateMdoe:Boolean = false;
+		
+		public var shipAngleAdd:Number = 0;
+		
+		public var isGod:Boolean=false;
+		[Embed(source="data/title.mp3")] public var SndHit:Class;
 		
 		//This is the player object class.  Most of the comments I would put in here
 		//would be near duplicates of the Enemy class, so if you're confused at all
@@ -88,6 +93,28 @@ package
 			TweenMax.to(this, _time, {scaleX:1,scaleY:1,  angle:angle+720, ease:Quad.easeOut,onComplete:transferFinished});
 		}
 		
+		public function transferToNextLevel(X:Number,Y:Number):void
+		{
+			isGod = true;
+			TweenMax.to(this, 1, {x:X,y:Y,scaleX:0,scaleY:0, angle:angle+720, ease:Quad.easeIn,onComplete:flashToNextLevel} );
+		}
+		
+		public function flashToNextLevel():void
+		{
+			FlxG.play(SndHit);
+			FlxG.shake();
+			FlxG.flash(0xffffff, 1, nextLevel);
+		}
+		
+		public function nextLevel():void
+		{
+			if (MenuState.currentLevelIndex <= maxLevel)
+			{
+				MenuState.currentLevelIndex++;
+			}
+			FlxG.resetState();
+		}
+		
 		public function transferFinished():void
 		{
 			isTransfering = false;
@@ -128,10 +155,12 @@ package
 			//MOVEMENT
 			acceleration.x = 0;
 			acceleration.y = 0;
+		
 			
-			//angle %= 360;
+			var deltaAngle :Number= shipAngleAdd * FlxG.elapsed * 3;
+			shipAngleAdd -= deltaAngle;
 			
-			//TweenMax.to(FlxG.camera, 1, { angle: (-angle)%180 } );
+			FlxG.camera.angle += deltaAngle;
 			
 			FlxG.watch(FlxG.camera,"angle");
 			FlxG.watch(this,"angle");
@@ -140,7 +169,8 @@ package
 				
 				if (cameraRotateMdoe)
 				{
-					FlxG.camera.angle += 5;
+					shipAngleAdd += 5;
+					//FlxG.camera.angle += 5;
 				}
 				
 				angle -= 5;
@@ -151,7 +181,8 @@ package
 				
 				if (cameraRotateMdoe)
 				{
-					FlxG.camera.angle -= 5;
+					shipAngleAdd -= 5;
+					//FlxG.camera.angle -= 5;
 				}
 				
 				angle += 5;
@@ -238,6 +269,10 @@ package
 		
 		override public function hurt(Damage:Number):void
 		{
+			if (isGod)
+			{
+				return;
+			}
 			Damage = 0;
 			
 			FlxG.play(SndHurt);
